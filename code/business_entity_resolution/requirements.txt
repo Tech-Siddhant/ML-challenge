@@ -1,0 +1,13 @@
+# Required for initial data audit and memory-conscious processing
+#
+# pandas: used for processing large TSV files in a memory-conscious manner, 
+# typically via the `chunksize` parameter, to avoid OOM killer when reading 5M row files.
+pandas
+
+# numpy: linear algebra and numerical primitives, required underneath pandas
+numpy
+
+# jupyter & ipykernel: targeted exploratory data analysis, plotting, and visualizing subsets,
+# as the pipeline logic itself will remain in Python scripts.
+jupyter
+ipykernel
