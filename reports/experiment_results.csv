@@ -1,0 +1,2 @@
+experiment_id,experiment_name,status,dataset,runtime_seconds,notes,f05,precision,recall,candidate_recall
+EXP-001,Memory-Conscious Data Audit,completed,7 TSV files (~2.35 GB),478.96,Complete data audit & cross-file integrity. No ML matching performed.,,,,
