@@ -1,0 +1,26 @@
+{
+  "experiment": "EXP-002",
+  "metric": "macro_F0.5",
+  "formula": "F0.5 = 1.25*P*R / (0.25*P + R)",
+  "scope": "per S1 entity, then macro-averaged",
+  "includes_singletons": true,
+  "zero_case_conventions": {
+    "truth_empty_pred_empty": {
+      "P": 1,
+      "R": 1,
+      "F0.5": 1
+    },
+    "truth_empty_pred_nonempty": {
+      "P": 0,
+      "R": 1,
+      "F0.5": 0
+    },
+    "truth_nonempty_pred_empty": {
+      "P": 1,
+      "R": 0,
+      "F0.5": 0
+    }
+  },
+  "module": "code/business_entity_resolution/src/evaluation.py",
+  "api": "evaluate_predictions(predictions, ground_truth, per_entity=False)"
+}

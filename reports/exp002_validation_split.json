@@ -1,0 +1,31 @@
+{
+  "experiment": "EXP-002",
+  "split_method": "random_shuffle_s1_entity_level",
+  "random_seed": 42,
+  "total_s1_entities": 2206821,
+  "num_development_s1": 1765457,
+  "num_validation_s1": 441364,
+  "validation_fraction_actual": 0.2,
+  "dev_singletons": 98493,
+  "val_singletons": 24754,
+  "overlap_count": 0,
+  "val_id_sha256": "c5f8f80b59ac01997c70c49732b07e9cc4a2b28fd1316a96df0da8df75ead6a0",
+  "dev_id_sha256": "cfb61d65010167fd31ce7a4590ae6cd947dcdab3bce70e361d087117ea06eebf",
+  "leakage_shared_s2s3_ids": 0,
+  "leakage_cross_boundary": 0,
+  "leakage_note": "0 S2/S3 IDs shared across S1s; 0 cross dev/val boundary. Reported, not corrected.",
+  "val_match_count_distribution": {
+    "0": 24754,
+    "1": 23764,
+    "2": 75038,
+    "3": 106343,
+    "4": 96611,
+    "5": 64002,
+    "6": 33337,
+    "7": 12867,
+    "8": 3700,
+    "9": 841,
+    "10": 98,
+    "11": 9
+  }
+}

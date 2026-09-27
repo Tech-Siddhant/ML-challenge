@@ -1,2 +1,6 @@
 experiment_id,experiment_name,status,dataset,runtime_seconds,notes,f05,precision,recall,candidate_recall
 EXP-001,Memory-Conscious Data Audit,completed,7 TSV files (~2.35 GB),478.96,Complete data audit & cross-file integrity. No ML matching performed.,,,,
+EXP-002,Validation Split & Evaluation Harness,completed,train_ground_truth.tsv,88.22,seed=42 dev=1765457 val=441364 shared_s2s3=0 cross_boundary=0,,,,
+EXP-003A,"exact_normalized_name",completed,"val split (441364 S1)",5.77,"recall=0.204624 avg_cands=9.419 median=1.0 p99=179 max=431 reduction_ratio=99.999909%",,,,0.204624
+EXP-003B,"exact_normalized_name_country",completed,"val split (441364 S1)",6.23,"recall=0.204624 avg_cands=9.3881 median=1.0 p99=177 max=430 reduction_ratio=99.999909%",,,,0.204624
+EXP-003C,"union_A_B",completed,"val split (441364 S1)",10.28,"recall=0.204624 avg_cands=9.419 median=1.0 p99=179 max=431 reduction_ratio=99.999909%",,,,0.204624

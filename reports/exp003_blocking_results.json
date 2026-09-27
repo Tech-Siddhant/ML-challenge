@@ -1,0 +1,62 @@
+{
+  "experiment": "EXP-003",
+  "description": "Baseline candidate generation via exact-key blocking",
+  "validation_split": "reports/validation_s1_ids.txt (EXP-002, seed=42)",
+  "total_runtime_seconds": 225.83,
+  "strategies": {
+    "EXP-003A": {
+      "experiment_id": "EXP-003A",
+      "strategy": "exact_normalized_name",
+      "macro_candidate_recall": 0.204624,
+      "num_s1_evaluated": 441364,
+      "num_s1_with_ground_truth": 416610,
+      "num_singletons_skipped": 24754,
+      "average_candidates": 9.419,
+      "median_candidates": 1.0,
+      "p95_candidates": 57,
+      "p99_candidates": 179,
+      "max_candidates": 431,
+      "total_candidate_pairs": 4157220,
+      "total_cartesian_pairs": 4554973138716,
+      "reduction_ratio": 0.99999909,
+      "reduction_ratio_percent": "99.999909%",
+      "runtime_seconds": 5.77
+    },
+    "EXP-003B": {
+      "experiment_id": "EXP-003B",
+      "strategy": "exact_normalized_name_country",
+      "macro_candidate_recall": 0.204624,
+      "num_s1_evaluated": 441364,
+      "num_s1_with_ground_truth": 416610,
+      "num_singletons_skipped": 24754,
+      "average_candidates": 9.3881,
+      "median_candidates": 1.0,
+      "p95_candidates": 57,
+      "p99_candidates": 177,
+      "max_candidates": 430,
+      "total_candidate_pairs": 4143557,
+      "total_cartesian_pairs": 4554973138716,
+      "reduction_ratio": 0.99999909,
+      "reduction_ratio_percent": "99.999909%",
+      "runtime_seconds": 6.23
+    },
+    "EXP-003C": {
+      "experiment_id": "EXP-003C",
+      "strategy": "union_A_B",
+      "macro_candidate_recall": 0.204624,
+      "num_s1_evaluated": 441364,
+      "num_s1_with_ground_truth": 416610,
+      "num_singletons_skipped": 24754,
+      "average_candidates": 9.419,
+      "median_candidates": 1.0,
+      "p95_candidates": 57,
+      "p99_candidates": 179,
+      "max_candidates": 431,
+      "total_candidate_pairs": 4157220,
+      "total_cartesian_pairs": 4554973138716,
+      "reduction_ratio": 0.99999909,
+      "reduction_ratio_percent": "99.999909%",
+      "runtime_seconds": 10.28
+    }
+  }
+}

@@ -112,3 +112,133 @@ Data audit complete and verified. Proceed to create EDA visualizations in notebo
 Next step:
 EXP-001 visualization in `notebooks/01_eda.ipynb`
 
+
+### EXP-002 — Ground-Truth, Validation Split & Evaluation Harness
+
+Status: Completed
+
+Objective:
+Build the reusable evaluation layer and create a leakage-safe Source-1-level development/validation split to benchmark future matching pipelines without data leakage.
+
+Validation split:
+- Split method: Deterministic random shuffle at the `source1_entity_id` level
+- Seed: 42
+- Development set: 1,765,457 S1 entities (80%)
+- Validation set: 441,364 S1 entities (20%)
+- Singletons: Validation split strictly includes unmatchable singleton representation (24,669 zero-match S1 entities).
+- Leakage check: Verified 0 shared S2/S3 entity IDs cross the validation/development split boundary.
+
+Evaluation implementation:
+- `evaluation.py` implemented `evaluate_predictions()` reporting macro-averaged per-S1 F0.5.
+- Handles edge cases faithfully: Empty predictions against nothing score `P=1, R=1, F0.5=1`; empty predictions against valid matches score `P=1, R=0, F0.5=0`.
+- Includes missing/singleton ground-truth elements within macro-average to penalize aggressive false positives correctly.
+
+Tests:
+- Unit suite `test_evaluation.py` passes all 11 test cases (synthetic multi-match, duplicate removals, edge cases).
+- Structural evaluation over the actual 20% validation split confirms Oracle F0.5 = 1.00 and Empty matcher F0.5 ≈ 0.0558 (recovering score strictly from correct singleton detection).
+
+Files created:
+- `code/business_entity_resolution/src/evaluation.py`
+- `code/business_entity_resolution/src/exp002_run.py`
+- `code/business_entity_resolution/tests/test_evaluation.py`
+- `reports/exp002_validation_split.json`
+- `reports/exp002_evaluation_spec.json`
+- `reports/validation_s1_ids.txt`, `reports/development_s1_ids.txt`
+
+Decision:
+Base evaluation platform is secure and functional.
+
+Next step:
+EXP-003 — Baseline Candidate Generation
+### EXP-003 — Baseline Candidate Generation
+
+Status: Completed
+
+Objective:
+Build a simple, interpretable baseline candidate-generation and blocking strategy and measure how much ground truth can be recovered across the EXP-002 validation split (441,364 S1 entities).
+
+Candidate Pool & Cartesian Scale:
+- Validation S1 queries: 441,364 entities
+  - Non-singletons (evaluated for recall): 416,610 entities
+  - Singletons (no ground truth matches): 24,754 entities
+- Candidate pool:
+  - Source 2: 5,034,616 records
+  - Source 3: 5,285,603 records
+  - Total pool: 10,320,219 records
+- Total possible Cartesian pairs: 4,554,973,138,716 (~4.55 trillion pairs)
+
+Normalization Rules Implemented:
+1. Unicode NFC Canonical Composition (`unicodedata.normalize("NFC", raw)`).
+2. Case-Folding: Locale-independent lowercasing via `casefold()` (e.g. German 'ß' -> 'ss').
+3. Unicode Punctuation & Symbol Removal: C-level table translation mapping all Unicode `P*` (Punctuation) and `S*` (Symbols) categories to None. Explicitly preserves Letters (`L*`), Numbers (`N*`), Whitespace (`Z*`), and Combining Characters/Marks (`M*`, e.g. Devanagari vowel matras in Hindi: 'राम' -> 'राम', not 'रम').
+4. Whitespace Normalization: Collapses runs of whitespace (`\s+`) to single ASCII space and strips leading/trailing whitespace.
+
+Strategies Evaluated:
+1. Rule A — Exact Normalized Business Name:
+   - Macro Candidate Recall: 0.204624 (20.46%)
+   - Average Candidates / S1: 9.4190
+   - Median Candidates / S1: 1.0
+   - P95 Candidates: 57
+   - P99 Candidates: 179
+   - Max Candidates: 431
+   - Total Candidate Pairs: 4,157,220
+   - Candidate Reduction Ratio: 99.999909%
+   - Strategy Runtime: 5.77s
+
+2. Rule B — Exact Normalized Name + Country:
+   - Macro Candidate Recall: 0.204624 (20.46%)
+   - Average Candidates / S1: 9.3881
+   - Median Candidates / S1: 1.0
+   - P95 Candidates: 57
+   - P99 Candidates: 177
+   - Max Candidates: 430
+   - Total Candidate Pairs: 4,143,557
+   - Candidate Reduction Ratio: 99.999909%
+   - Strategy Runtime: 6.23s
+
+3. Rule C — Union Baseline (Rule A + Rule B):
+   - Macro Candidate Recall: 0.204624 (20.46%)
+   - Average Candidates / S1: 9.4190
+   - Median Candidates / S1: 1.0
+   - P95 Candidates: 57
+   - P99 Candidates: 179
+   - Max Candidates: 431
+   - Total Candidate Pairs: 4,157,220
+   - Candidate Reduction Ratio: 99.999909%
+   - Strategy Runtime: 10.28s
+
+Total Pipeline Runtime:
+225.8 seconds (~3.7 minutes) end-to-end streaming all files. Peak memory RSS observed ~600 MB (from execution log), well within system limits.
+
+Interpretation:
+Exact normalized-name blocking achieved 20.46% macro candidate recall across applicable validation S1 entities. This is the macro-average of per-S1 recall values; it does not directly state the proportion of total ground-truth pairs recovered (micro/pair-level candidate recall was not computed in this run and remains pending).
+Because blocking defines the candidate search space for all downstream stages, unrecovered entities at this stage cannot be matched later. The macro candidate recall therefore represents a blocking ceiling for any matcher built exclusively on these candidates.
+
+Rule A / B / C Relationship:
+```
+Rule A = blocking key is normalized_name
+Rule B = blocking key is (normalized_name, country)
+
+B ⊆ A (B applies a strictly tighter filter than A)
+therefore: A ∪ B = A
+```
+EXP-003C (Union A ∪ B) is identical to EXP-003A by construction: every candidate pair in B is already in A. The identical measured recall (0.204624) and candidate counts (4,157,220) confirm this. Rule C is not an independent blocking improvement.
+
+Lessons Learned & Key Observations:
+- Country Pruning: Incorporating country into the blocking key (Rule B) removed 13,663 non-ground-truth candidate pairs (reducing candidate volume) without losing any candidate recall (0.204624 in both). In this dataset, matching entities virtually always share the same country value.
+- Script-Aware Normalization: Standard regex `[^\w\s]` strips combining marks (`Mn`/`Mc`), destroying Hindi vowels/matras in Devanagari. Preserving Unicode `M*` categories while removing `P*` and `S*` ensures multilingual data integrity across Indian and Western entity names.
+- Memory Scalability: Pre-filtering S2 and S3 during stream reading against the set of unique normalized validation names (355,722 keys) reduced the active in-memory index from 10.3M records to ~824,164 records, keeping peak RSS to ~600 MB and avoiding OOM on the 7.1 GB RAM machine.
+
+Pending:
+- Micro (pair-level) candidate recall: `total_recovered_gt_pairs / total_gt_pairs`. Not computed in this run; requires a code patch and rerun (~4 min). Deferred to avoid unnecessary recomputation.
+
+Next Hypotheses (EXP-004+):
+1. Legal Entity Suffix Normalization & Stripping: Normalize corporate suffixes (e.g. "Pvt Ltd" <-> "Private Limited", "Inc", "LLC", "Corp") to bridge common lexical gaps.
+2. Inverted Token Indexing: Generate candidates from shared informative tokens / word prefixes to capture partial name matches and word order inversions.
+3. Character N-gram / MinHash Blocking: Catch minor spelling typos and transliteration variations with fuzzy candidate generation.
+4. Address / Geographic Blocking: Block on postal code, city, or normalized address tokens to retrieve matches whose business names are completely dissimilar or abbreviated.
+
+Decision:
+EXP-003 complete and benchmark ledger updated.
+
+

@@ -11,3 +11,10 @@ __pycache__/
 .DS_Store
 !reports/*.csv
 
+*.log
+
+# IDE / agent scaffolding
+.cline/
+.clinerules/
+.serena/
+
